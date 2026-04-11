@@ -52,20 +52,22 @@ func findGitRepos(root string) ([]repoActivity, error) {
 }
 
 // lastActivity returns the most recent mtime we can observe for a
-// repo's git state. .git/HEAD updates on commits and checkouts; the
-// .git entry itself is a fallback for unusual layouts (worktrees,
-// gitdir files).
+// repo's git state. The .git directory mtime bumps whenever git
+// adds/removes entries inside it (index.lock dances on status, ref
+// writes, log rotations), so it tracks active work — not just commits
+// and checkouts like HEAD does. HEAD is kept as a fallback for
+// worktree layouts where .git is a gitdir file with a frozen mtime.
 func lastActivity(gitPath string) time.Time {
+	if info, err := os.Stat(gitPath); err == nil && info.IsDir() {
+		return info.ModTime()
+	} else if err != nil {
+		dlog("stat %s: %v", gitPath, err)
+	}
 	headPath := filepath.Join(gitPath, "HEAD")
 	if info, err := os.Stat(headPath); err == nil {
 		return info.ModTime()
 	} else {
 		dlog("stat %s: %v", headPath, err)
-	}
-	if info, err := os.Stat(gitPath); err == nil {
-		return info.ModTime()
-	} else {
-		dlog("stat %s: %v", gitPath, err)
 	}
 	return time.Time{}
 }
