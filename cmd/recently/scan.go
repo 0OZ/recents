@@ -33,6 +33,10 @@ func findGitRepos(root string) ([]repoActivity, error) {
 		if !d.IsDir() {
 			return nil
 		}
+		if d.Name() == ".claude" {
+			dlog("skip %s (claude agent worktree dir)", path)
+			return fs.SkipDir
+		}
 		gitPath := filepath.Join(path, gitMarkerDir)
 		if _, statErr := os.Stat(gitPath); statErr == nil {
 			mtime := lastActivity(gitPath)

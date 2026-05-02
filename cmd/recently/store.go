@@ -43,6 +43,10 @@ func (s *Store) Load() {
 	}
 	kept := make([]Entry, 0, len(entries))
 	for _, e := range entries {
+		if isAgentWorktree(string(e.Path)) {
+			dlog("store prune agent worktree %s", e.Path)
+			continue
+		}
 		if _, err := os.Stat(string(e.Path)); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				dlog("store prune missing %s", e.Path)

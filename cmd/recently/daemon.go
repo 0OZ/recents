@@ -136,11 +136,16 @@ func (d *Daemon) persistAndRefresh(snap []Entry) {
 	}
 }
 
-// findGitRoot walks dir upwards until it finds a .git marker.
+// findGitRoot walks dir upwards until it finds a .git marker. Roots
+// inside a Claude Code agent worktree (`.claude/worktrees/...`) are
+// skipped so the outer project repo wins instead.
 func findGitRoot(dir string) (string, bool) {
 	for {
 		if _, err := os.Stat(filepath.Join(dir, gitMarkerDir)); err == nil {
-			return dir, true
+			if !isAgentWorktree(dir) {
+				return dir, true
+			}
+			dlog("skip agent worktree %s", dir)
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {

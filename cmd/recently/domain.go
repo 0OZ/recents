@@ -34,3 +34,16 @@ type Entry struct {
 	Path      ProjectPath `json:"path"`
 	LastVisit time.Time   `json:"last_visit"`
 }
+
+// isAgentWorktree reports whether path lives inside a Claude Code agent
+// worktree (`.claude/worktrees/...`). These are throwaway sibling repos
+// that would otherwise crowd out real projects in the MRU list.
+func isAgentWorktree(path string) bool {
+	parts := strings.Split(filepath.ToSlash(path), "/")
+	for i := 0; i+1 < len(parts); i++ {
+		if parts[i] == ".claude" && parts[i+1] == "worktrees" {
+			return true
+		}
+	}
+	return false
+}
