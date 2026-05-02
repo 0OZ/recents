@@ -69,7 +69,35 @@ EOF
     info "shell hook → $rc"
 }
 
+find_existing_plist_darwin() {
+    local agents_dir="$HOME/Library/LaunchAgents"
+    [ -d "$agents_dir" ] || return 0
+    local p
+    for p in "$agents_dir"/*.plist; do
+        [ -f "$p" ] || continue
+        [ "$p" = "$PLIST" ] && continue
+        if grep -qE '<string>[^<]*/recently</string>' "$p" 2>/dev/null; then
+            printf '%s\n' "$p"
+            return 0
+        fi
+    done
+}
+
 install_service_darwin() {
+    local existing
+    existing="$(find_existing_plist_darwin)"
+    if [ -n "$existing" ]; then
+        local label
+        label="$(basename "$existing" .plist)"
+        warn "existing recently plist detected: $existing"
+        warn "skipping creation of $PLIST to avoid duplicate daemon"
+        warn "verify ProgramArguments in $existing points to $BIN_PATH"
+        launchctl kickstart -k "gui/$(id -u)/$label" 2>/dev/null \
+            && info "kicked existing daemon ($label)" \
+            || warn "could not kick $label; restart it manually"
+        return 0
+    fi
+
     mkdir -p "$(dirname "$PLIST")"
     cat > "$PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>

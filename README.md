@@ -29,7 +29,7 @@ recently              # run the daemon
 recently <path>       # record a path (what the shell hook calls)
 recently -list        # show current entries
 recently -clear       # wipe
-recently -scan [dir]  # one-shot scan: walk dir (or cwd) for git repos, link recents into <dir>/recent/
+recently -scan [dir]  # one-shot scan: walk dir (default $RECENTLY_ROOT or cwd) for git repos, link recents into <dir>/recent/
 recently -D …         # enable debug logging (alias: -debug)
 recently -h           # all flags
 ```

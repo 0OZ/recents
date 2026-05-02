@@ -32,7 +32,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "  %s <path>           record path as visited\n", appName)
 		fmt.Fprintf(os.Stderr, "  %s -list            list recent entries\n", appName)
 		fmt.Fprintf(os.Stderr, "  %s -clear           clear all entries\n", appName)
-		fmt.Fprintf(os.Stderr, "  %s -scan [dir]      scan dir (or cwd) for git repos, link recents into <dir>/recent/\n", appName)
+		fmt.Fprintf(os.Stderr, "  %s -scan [dir]      scan dir (default: $RECENTLY_ROOT or cwd) for git repos, link recents into <dir>/recent/\n", appName)
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "flags:")
 		flag.PrintDefaults()
@@ -57,9 +57,12 @@ func main() {
 	case *clearFlag:
 		runClear(cfg)
 	case *scanFlag:
-		target := "."
+		target := cfg.Root
 		if flag.NArg() > 0 {
 			target = flag.Arg(0)
+		}
+		if target == "" {
+			target = "."
 		}
 		runScan(cfg, target)
 	case flag.NArg() > 0:
